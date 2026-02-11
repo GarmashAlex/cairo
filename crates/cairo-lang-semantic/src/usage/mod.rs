@@ -88,7 +88,7 @@ impl<'db> Usage<'db> {
     /// Removes usage that was introduced current block and usage that is already covered
     /// by containing variables.
     pub fn finalize_as_scope(&mut self) {
-        for (member_path, _) in self.usage.clone() {
+        for member_path in self.usage.keys().cloned().collect::<Vec<_>>() {
             // Prune introductions from usages.
             if self.introductions.contains(&member_path.base_var()) {
                 self.usage.swap_remove(&member_path);
@@ -105,7 +105,7 @@ impl<'db> Usage<'db> {
                 }
             }
         }
-        for (member_path, _) in self.snap_usage.clone() {
+        for member_path in self.snap_usage.keys().cloned().collect::<Vec<_>>() {
             // Prune usages from snap_usage.
             if self.usage.contains_key(&member_path) {
                 self.snap_usage.swap_remove(&member_path);
@@ -129,7 +129,7 @@ impl<'db> Usage<'db> {
                 }
             }
         }
-        for (member_path, _) in self.changes.clone() {
+        for member_path in self.changes.keys().cloned().collect::<Vec<_>>() {
             // Prune introductions from changes.
             if self.introductions.contains(&member_path.base_var()) {
                 self.changes.swap_remove(&member_path);
