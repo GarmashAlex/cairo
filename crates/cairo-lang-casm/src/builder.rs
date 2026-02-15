@@ -360,7 +360,7 @@ impl CasmBuilder {
             CellExpression::BinOp {
                 op: CellOperator::Add,
                 a: cell,
-                b: deref_or_immediate!(BigInt::from(offset) + 1),
+                b: deref_or_immediate!(offset + 1),
             },
         );
         self.add_var(CellExpression::DoubleDeref(cell, offset))
