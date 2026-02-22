@@ -112,6 +112,15 @@ pub trait RebuilderEx<'db>: Rebuilder<'db> {
         remapping
     }
 
+    /// Rebuilds a match arm with renamed var and block ids.
+    fn rebuild_match_arm(&mut self, arm: &MatchArm<'db>) -> MatchArm<'db> {
+        MatchArm {
+            arm_selector: arm.arm_selector.clone(),
+            block_id: self.map_block_id(arm.block_id),
+            var_ids: arm.var_ids.iter().map(|var_id| self.map_var_id(*var_id)).collect(),
+        }
+    }
+
     /// Rebuilds the block end with renamed var and block ids.
     fn rebuild_end(&mut self, end: &BlockEnd<'db>) -> BlockEnd<'db> {
         let mut end = match end {
@@ -129,55 +138,19 @@ pub trait RebuilderEx<'db>: Rebuilder<'db> {
                     MatchInfo::Extern(stmt) => MatchInfo::Extern(MatchExternInfo {
                         function: stmt.function,
                         inputs: stmt.inputs.iter().map(|v| self.map_var_usage(*v)).collect(),
-                        arms: stmt
-                            .arms
-                            .iter()
-                            .map(|arm| MatchArm {
-                                arm_selector: arm.arm_selector.clone(),
-                                block_id: self.map_block_id(arm.block_id),
-                                var_ids: arm
-                                    .var_ids
-                                    .iter()
-                                    .map(|var_id| self.map_var_id(*var_id))
-                                    .collect(),
-                            })
-                            .collect(),
+                        arms: stmt.arms.iter().map(|arm| self.rebuild_match_arm(arm)).collect(),
                         location: self.map_location(stmt.location),
                     }),
                     MatchInfo::Enum(stmt) => MatchInfo::Enum(MatchEnumInfo {
                         concrete_enum_id: stmt.concrete_enum_id,
                         input: self.map_var_usage(stmt.input),
-                        arms: stmt
-                            .arms
-                            .iter()
-                            .map(|arm| MatchArm {
-                                arm_selector: arm.arm_selector.clone(),
-                                block_id: self.map_block_id(arm.block_id),
-                                var_ids: arm
-                                    .var_ids
-                                    .iter()
-                                    .map(|var_id| self.map_var_id(*var_id))
-                                    .collect(),
-                            })
-                            .collect(),
+                        arms: stmt.arms.iter().map(|arm| self.rebuild_match_arm(arm)).collect(),
                         location: self.map_location(stmt.location),
                     }),
                     MatchInfo::Value(stmt) => MatchInfo::Value(MatchEnumValue {
                         num_of_arms: stmt.num_of_arms,
                         input: self.map_var_usage(stmt.input),
-                        arms: stmt
-                            .arms
-                            .iter()
-                            .map(|arm| MatchArm {
-                                arm_selector: arm.arm_selector.clone(),
-                                block_id: self.map_block_id(arm.block_id),
-                                var_ids: arm
-                                    .var_ids
-                                    .iter()
-                                    .map(|var_id| self.map_var_id(*var_id))
-                                    .collect(),
-                            })
-                            .collect(),
+                        arms: stmt.arms.iter().map(|arm| self.rebuild_match_arm(arm)).collect(),
                         location: self.map_location(stmt.location),
                     }),
                 },
